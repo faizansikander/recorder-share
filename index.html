@@ -33,7 +33,76 @@
     }
     .close-btn:hover { background: #ff3b3b; color: #fff; }
 
-    main { width: 100%; max-width: 1100px; padding: 0 24px 48px; flex: 1; }
+    main { width: 100%; max-width: 1280px; padding: 0 24px 48px; flex: 1; }
+
+    /* ── Two-column layout: player + transcript ─────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .layout.has-transcript {
+      grid-template-columns: minmax(0, 1fr) 320px;
+    }
+    @media (max-width: 900px) {
+      .layout.has-transcript { grid-template-columns: 1fr; }
+    }
+
+    .player-col { min-width: 0; }
+
+    /* ── Transcript panel ──────────────────────────────── */
+    .transcript-panel {
+      background: #161616;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      max-height: 540px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .transcript-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #262626;
+      font-size: 13px; font-weight: 600;
+      color: #ddd;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .transcript-header svg { color: #FF5733; }
+    .transcript-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .transcript-item {
+      display: flex; gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background .12s, border-color .12s;
+    }
+    .transcript-item:hover { background: #1f1f1f; }
+    .transcript-item.active {
+      background: #1f1a18;
+      border-left-color: #FF5733;
+    }
+    .transcript-time {
+      flex-shrink: 0;
+      color: #FF5733;
+      font-size: 12px; font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      padding-top: 1px;
+      min-width: 38px;
+    }
+    .transcript-text {
+      color: #ccc;
+      font-size: 13px; line-height: 1.5;
+      word-break: break-word;
+    }
+    .transcript-empty {
+      padding: 24px 16px;
+      color: #666; font-size: 13px;
+      text-align: center;
+    }
 
     /* ── Player wrap with prev/next overlay buttons ────────── */
     .player-wrap {
@@ -190,8 +259,12 @@
       const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute('content', v.title || 'Screen Recording');
 
+      const hasTranscript = Array.isArray(v.transcript) && v.transcript.length > 0;
+
       const main = document.getElementById('main');
       main.innerHTML = `
+       <div class="layout ${hasTranscript ? 'has-transcript' : ''}">
+        <div class="player-col">
         <div class="player-wrap">
           <button class="nav-btn prev" id="prevBtn" aria-label="Previous recording" ${idx >= library.length - 1 ? 'disabled' : ''}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -231,6 +304,31 @@
             </a>
           </div>
         </div>
+        </div>
+
+        ${hasTranscript ? `
+          <aside class="transcript-panel" id="transcriptPanel">
+            <div class="transcript-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="8"  y1="13" x2="16" y2="13"/>
+                <line x1="8"  y1="17" x2="16" y2="17"/>
+                <line x1="8"  y1="9"  x2="10" y2="9"/>
+              </svg>
+              Transcript
+            </div>
+            <div class="transcript-list" id="transcriptList">
+              ${v.transcript.map((seg, i) => `
+                <div class="transcript-item" data-idx="${i}" data-t="${Number(seg.t) || 0}">
+                  <span class="transcript-time">${formatDuration(seg.t)}</span>
+                  <span class="transcript-text">${escHtml(seg.text)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </aside>
+        ` : ''}
+       </div>
       `;
 
       // Update URL without reload so refresh stays on same video
@@ -291,6 +389,48 @@
         if (e.key === 'ArrowLeft' && e.shiftKey)  prevBtn?.click();
         if (e.key === 'ArrowRight' && e.shiftKey) nextBtn?.click();
       };
+
+      // ── Transcript: click-to-seek + auto-highlight active segment ──
+      const transcriptList = document.getElementById('transcriptList');
+      if (transcriptList && Array.isArray(v.transcript) && v.transcript.length) {
+        const items = Array.from(transcriptList.querySelectorAll('.transcript-item'));
+
+        // Click any segment → seek & play
+        transcriptList.addEventListener('click', (e) => {
+          const item = e.target.closest('.transcript-item');
+          if (!item) return;
+          const t = parseFloat(item.dataset.t || '0');
+          if (isFinite(t)) {
+            video.currentTime = t;
+            video.play().catch(() => {});
+          }
+        });
+
+        // Active segment highlight while playing
+        let lastActive = -1;
+        video.addEventListener('timeupdate', () => {
+          const cur = video.currentTime;
+          // Find last segment with t <= cur (binary search would be overkill)
+          let active = -1;
+          for (let i = 0; i < v.transcript.length; i++) {
+            if ((v.transcript[i].t || 0) <= cur) active = i;
+            else break;
+          }
+          if (active === lastActive) return;
+          lastActive = active;
+          items.forEach((el, i) => el.classList.toggle('active', i === active));
+          if (active >= 0) {
+            const el = items[active];
+            // Scroll into view within the panel only (not the whole page)
+            const panel = transcriptList;
+            const elTop = el.offsetTop;
+            const elBottom = elTop + el.offsetHeight;
+            if (elTop < panel.scrollTop || elBottom > panel.scrollTop + panel.clientHeight) {
+              panel.scrollTo({ top: elTop - panel.clientHeight / 2 + el.offsetHeight / 2, behavior: 'smooth' });
+            }
+          }
+        });
+      }
 
       // Copy link
       document.getElementById('copyBtn').addEventListener('click', () => {
