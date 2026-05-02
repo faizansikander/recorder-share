@@ -127,6 +127,51 @@
     .nav-btn.prev { left: 12px; }
     .nav-btn.next { right: 12px; }
 
+    /* ── Live captions overlay (rendered at bottom of player) ── */
+    .captions {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 64px; /* sit above the native control bar */
+      max-width: 88%;
+      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: clamp(14px, 1.7vw, 20px);
+      font-weight: 500;
+      line-height: 1.35;
+      text-align: center;
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity .15s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .captions.visible { opacity: 1; }
+    .captions:empty   { display: none; }
+    /* Pull captions to the very bottom while controls are hidden (fullscreen idle) */
+    video::-webkit-media-controls-panel { z-index: 5; }
+
+    .captions-toggle {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      width: 36px; height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .5px;
+      z-index: 6;
+      transition: background .15s, opacity .15s;
+    }
+    .captions-toggle:hover { background: rgba(0,0,0,0.85); }
+    .captions-toggle.off   { opacity: .55; }
+    .captions-toggle.off::after { content: ''; }
+
     .nav-counter {
       position: absolute; top: 12px; right: 12px;
       background: rgba(0,0,0,0.6);
@@ -279,6 +324,10 @@
             </svg>
           </button>
           ${library.length > 1 ? `<div class="nav-counter">${idx + 1} / ${library.length}</div>` : ''}
+          ${hasTranscript ? `
+            <button class="captions-toggle" id="ccToggle" title="Toggle captions" aria-label="Toggle captions">CC</button>
+            <div class="captions visible" id="captions"></div>
+          ` : ''}
         </div>
         <div class="meta">
           <div class="title-wrap">
@@ -390,6 +439,29 @@
         if (e.key === 'ArrowRight' && e.shiftKey) nextBtn?.click();
       };
 
+      // ── Captions overlay (bottom of player) ───────────────────────
+      // Each transcript segment {t, text} acts as a caption that displays
+      // from its t until the next segment's t (or t + 5s for the last one).
+      // User can hide/show with the CC button (preference saved in localStorage).
+      const captionsEl = document.getElementById('captions');
+      const ccToggle   = document.getElementById('ccToggle');
+      let captionsOn = localStorage.getItem('captionsOff') !== '1';
+      if (captionsEl && ccToggle) {
+        const applyCcState = () => {
+          ccToggle.classList.toggle('off', !captionsOn);
+          if (!captionsOn) {
+            captionsEl.textContent = '';
+            captionsEl.classList.remove('visible');
+          }
+        };
+        applyCcState();
+        ccToggle.addEventListener('click', () => {
+          captionsOn = !captionsOn;
+          localStorage.setItem('captionsOff', captionsOn ? '0' : '1');
+          applyCcState();
+        });
+      }
+
       // ── Transcript: click-to-seek + auto-highlight active segment ──
       const transcriptList = document.getElementById('transcriptList');
       if (transcriptList && Array.isArray(v.transcript) && v.transcript.length) {
@@ -406,16 +478,42 @@
           }
         });
 
-        // Active segment highlight while playing
+        // Active segment highlight + caption text while playing
+        const CAPTION_HOLD = 5; // seconds the last segment lingers
         let lastActive = -1;
         video.addEventListener('timeupdate', () => {
           const cur = video.currentTime;
-          // Find last segment with t <= cur (binary search would be overkill)
+          // Find last segment with t <= cur
           let active = -1;
           for (let i = 0; i < v.transcript.length; i++) {
             if ((v.transcript[i].t || 0) <= cur) active = i;
             else break;
           }
+
+          // Captions: show active segment if its window covers `cur`.
+          if (captionsEl && captionsOn) {
+            if (active >= 0) {
+              const seg     = v.transcript[active];
+              const segEnd  = (active + 1 < v.transcript.length)
+                ? (v.transcript[active + 1].t || 0)
+                : ((seg.t || 0) + CAPTION_HOLD);
+              if (cur < segEnd) {
+                if (captionsEl.dataset.idx !== String(active)) {
+                  captionsEl.dataset.idx   = String(active);
+                  captionsEl.textContent   = seg.text;
+                }
+                captionsEl.classList.add('visible');
+              } else {
+                captionsEl.classList.remove('visible');
+                captionsEl.textContent = '';
+                captionsEl.dataset.idx = '';
+              }
+            } else {
+              captionsEl.classList.remove('visible');
+              captionsEl.textContent = '';
+            }
+          }
+
           if (active === lastActive) return;
           lastActive = active;
           items.forEach((el, i) => el.classList.toggle('active', i === active));
