@@ -397,26 +397,44 @@
       const video = document.getElementById('player');
 
       // Slider seek fix: webm files written by MediaRecorder usually have no
-      // duration metadata, so the browser's seek bar can't scrub. Force load
-      // the entire video and recompute duration from the buffered range.
-      // Trick: seek to a huge time → browser updates duration → seek back.
+      // duration metadata, so the browser reports duration === Infinity and the
+      // native control bar shows nonsense like "596523:14:07". We force the
+      // duration to be recomputed by seeking to a huge time, waiting for the
+      // browser to update the metadata, then seeking back to 0.
+      //
+      // The control bar is hidden during the dance so the user never sees the
+      // bad timestamp, and re-enabled only once duration is a finite number.
       let durationFixed = false;
       const fixDuration = () => {
-        if (durationFixed || !isFinite(video.duration) === false) return;
+        if (durationFixed) return;
         if (video.duration === Infinity || isNaN(video.duration)) {
-          durationFixed = true;
-          const onTimeUpdate = () => {
-            video.currentTime = 0;
-            video.removeEventListener('timeupdate', onTimeUpdate);
-            video.play().catch(() => {});
+          // Hide the seek bar while we recompute — prevents the Infinity flash
+          video.removeAttribute('controls');
+          video.dataset.fixingDuration = '1';
+          const onDurationChange = () => {
+            if (video.duration !== Infinity && !isNaN(video.duration)) {
+              video.removeEventListener('durationchange', onDurationChange);
+              video.currentTime = 0;
+              video.setAttribute('controls', '');
+              delete video.dataset.fixingDuration;
+              durationFixed = true;
+            }
           };
-          video.addEventListener('timeupdate', onTimeUpdate);
-          // Seek to a very large value — browser will end up at real end
+          video.addEventListener('durationchange', onDurationChange);
+          // Failsafe: if the browser never fires a usable durationchange,
+          // restore controls after 6s so the player isn't stuck without a UI.
+          setTimeout(() => {
+            if (video.dataset.fixingDuration) {
+              video.setAttribute('controls', '');
+              delete video.dataset.fixingDuration;
+            }
+          }, 6000);
           video.currentTime = 1e10;
+        } else {
+          durationFixed = true;
         }
       };
       video.addEventListener('loadedmetadata', fixDuration);
-      // Also on durationchange in case Infinity → number happens later
       video.addEventListener('durationchange', () => {
         if (video.duration !== Infinity && !isNaN(video.duration)) durationFixed = true;
       });
