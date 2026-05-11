@@ -8,216 +8,257 @@
   <meta property="og:description" content="Watch this screen recording" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: #0f0f0f; color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      background: #0f0f0f;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
+    /* ── Header ─────────────────────────────────────────────────────── */
     header {
-      width: 100%; max-width: 1280px; padding: 20px 24px;
-      display: flex; align-items: center; gap: 10px;
+      width: 100%;
+      max-width: 1200px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
     }
-    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo-mark {
-      width: 32px; height: 32px; background: #FF5733; border-radius: 50%;
+      width: 30px; height: 30px;
+      background: #FF5733; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
+      flex-shrink: 0;
     }
-    .logo-text { font-size: 18px; font-weight: 600; }
-    /* Close button — fixed to viewport top-right, regardless of header width */
+    .logo-text { font-size: 17px; font-weight: 600; color: #fff; }
+
     .close-btn {
       position: fixed;
-      top: 16px; right: 20px;
-      width: 36px; height: 36px; border-radius: 50%;
-      border: none; background: #2a2a2a; color: #ccc;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      top: 14px; right: 18px;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: #222;
+      color: #aaa;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       transition: background .15s, color .15s;
       z-index: 100;
     }
-    .close-btn:hover { background: #ff3b3b; color: #fff; }
+    .close-btn:hover { background: #FF5733; color: #fff; }
 
-    main { width: 100%; max-width: 1280px; padding: 0 24px 48px; flex: 1; }
+    /* ── Main ───────────────────────────────────────────────────────── */
+    main {
+      width: 100%;
+      max-width: 1200px;
+      padding: 0 24px 64px;
+      flex: 1;
+    }
 
-    /* ── Two-column layout: player + transcript ─────────── */
-    .layout {
+    /* ── Content grid ───────────────────────────────────────────────── */
+    .content-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 20px;
       align-items: start;
     }
-    .layout.has-transcript {
-      grid-template-columns: minmax(0, 1fr) 320px;
+    .content-grid.has-transcript {
+      grid-template-columns: minmax(0, 1fr) 300px;
     }
-    @media (max-width: 900px) {
-      .layout.has-transcript { grid-template-columns: 1fr; }
+    @media (max-width: 860px) {
+      .content-grid.has-transcript { grid-template-columns: 1fr; }
     }
-
     .player-col { min-width: 0; }
 
-    /* ── Transcript panel ──────────────────────────────── */
-    .transcript-panel {
-      background: #161616;
-      border: 1px solid #262626;
-      border-radius: 12px;
-      max-height: 540px;
-      display: flex; flex-direction: column;
-      overflow: hidden;
-    }
-    .transcript-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid #262626;
-      font-size: 13px; font-weight: 600;
-      color: #ddd;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .transcript-header svg { color: #FF5733; }
-    .transcript-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 0;
-    }
-    .transcript-item {
-      display: flex; gap: 10px;
-      padding: 10px 16px;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      transition: background .12s, border-color .12s;
-    }
-    .transcript-item:hover { background: #1f1f1f; }
-    .transcript-item.active {
-      background: #1f1a18;
-      border-left-color: #FF5733;
-    }
-    .transcript-time {
-      flex-shrink: 0;
-      color: #FF5733;
-      font-size: 12px; font-weight: 500;
-      font-variant-numeric: tabular-nums;
-      padding-top: 1px;
-      min-width: 38px;
-    }
-    .transcript-text {
-      color: #ccc;
-      font-size: 13px; line-height: 1.5;
-      word-break: break-word;
-    }
-    .transcript-empty {
-      padding: 24px 16px;
-      color: #666; font-size: 13px;
-      text-align: center;
-    }
-
-    /* ── Player wrap with prev/next overlay buttons ────────── */
+    /* ── Player ─────────────────────────────────────────────────────── */
     .player-wrap {
       position: relative;
-      width: 100%; aspect-ratio: 16 / 9; background: #1a1a1a;
-      border-radius: 12px; overflow: hidden;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
     }
-    video { width: 100%; height: 100%; display: block; background: #000; }
+    video {
+      width: 100%; height: 100%;
+      display: block; background: #000;
+    }
 
     .nav-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
-      width: 48px; height: 48px; border-radius: 50%;
-      background: rgba(0,0,0,0.55); color: #fff;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(0,0,0,.6); color: #fff;
       border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity .2s, background .15s;
-      z-index: 5;
+      opacity: 0; transition: opacity .2s, background .15s; z-index: 5;
     }
-    .player-wrap:hover .nav-btn { opacity: 1; }
-    .nav-btn:hover { background: rgba(0,0,0,0.85); }
-    .nav-btn:disabled { opacity: 0 !important; cursor: not-allowed; }
+    .player-wrap:hover .nav-btn:not(:disabled) { opacity: 1; }
+    .nav-btn:hover { background: rgba(0,0,0,.88); }
+    .nav-btn:disabled { opacity: 0 !important; pointer-events: none; }
     .nav-btn.prev { left: 12px; }
     .nav-btn.next { right: 12px; }
 
-    /* ── Live captions overlay (rendered at bottom of player) ── */
+    .nav-counter {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; color: #ddd;
+      pointer-events: none; z-index: 5;
+    }
+
+    .captions-toggle {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+      color: #fff; border: none;
+      width: 34px; height: 26px; border-radius: 6px;
+      cursor: pointer; font-size: 10px; font-weight: 700;
+      letter-spacing: .5px; z-index: 6;
+      transition: background .15s, opacity .15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .captions-toggle:hover { background: rgba(0,0,0,.88); }
+    .captions-toggle.off   { opacity: .45; }
+
     .captions {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 64px; /* sit above the native control bar */
-      max-width: 88%;
-      padding: 8px 14px;
-      background: rgba(0, 0, 0, 0.78);
-      color: #fff;
-      font-size: clamp(14px, 1.7vw, 20px);
-      font-weight: 500;
-      line-height: 1.35;
-      text-align: center;
-      border-radius: 6px;
-      pointer-events: none;
-      z-index: 4;
-      opacity: 0;
-      transition: opacity .15s;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+      max-width: 86%; padding: 7px 13px;
+      background: rgba(0,0,0,.8); color: #fff;
+      font-size: clamp(13px, 1.6vw, 18px); font-weight: 500;
+      line-height: 1.4; text-align: center; border-radius: 6px;
+      pointer-events: none; z-index: 4; opacity: 0; transition: opacity .15s;
     }
     .captions.visible { opacity: 1; }
     .captions:empty   { display: none; }
-    /* Pull captions to the very bottom while controls are hidden (fullscreen idle) */
-    video::-webkit-media-controls-panel { z-index: 5; }
 
-    .captions-toggle {
-      position: absolute;
-      top: 12px; left: 12px;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      border: none;
-      width: 36px; height: 28px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
-      letter-spacing: .5px;
-      z-index: 6;
-      transition: background .15s, opacity .15s;
-    }
-    .captions-toggle:hover { background: rgba(0,0,0,0.85); }
-    .captions-toggle.off   { opacity: .55; }
-    .captions-toggle.off::after { content: ''; }
-
-    .nav-counter {
-      position: absolute; top: 12px; right: 12px;
-      background: rgba(0,0,0,0.6);
-      padding: 4px 10px; border-radius: 999px;
-      font-size: 12px; font-weight: 500; color: #ddd;
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    /* ── Meta + actions ────────────────────── */
+    /* ── Meta ───────────────────────────────────────────────────────── */
     .meta {
-      margin-top: 20px; display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      margin-top: 16px;
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 14px; flex-wrap: wrap;
     }
     .title-wrap { min-width: 0; flex: 1; }
-    .title-wrap h1 { font-size: 22px; font-weight: 600; line-height: 1.3; word-break: break-word; }
-    .subtitle { margin-top: 6px; font-size: 14px; color: #888; }
-    #copyStatus { font-size: 12px; color: #4caf50; margin-top: 6px; min-height: 18px; }
+    .title-wrap h1 { font-size: 20px; font-weight: 600; line-height: 1.3; word-break: break-word; }
+    .subtitle {
+      margin-top: 4px; font-size: 13px; color: #888;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .view-count {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 13px; color: #888;
+    }
+    #copyStatus { font-size: 12px; color: #4caf50; margin-top: 4px; min-height: 16px; }
 
-    .actions { display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+    .actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 9px 16px; border-radius: 8px; font-size: 14px;
-      font-weight: 500; cursor: pointer; border: none; text-decoration: none;
+      padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none; text-decoration: none;
       transition: opacity .15s, background .15s;
     }
-    .btn:hover { opacity: .85; }
-    .btn-primary { background: #FF5733; color: #fff; }
-    .btn-secondary { background: #2a2a2a; color: #fff; }
+    .btn:hover { opacity: .82; }
+    .btn-primary   { background: #FF5733; color: #fff; }
+    .btn-secondary { background: #1e1e1e; color: #ddd; border: 1px solid #2e2e2e; }
 
-    /* ── Loading / error states ───────────── */
+    /* ── Reactions ──────────────────────────────────────────────────── */
+    .reactions-bar {
+      margin-top: 16px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .reaction-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px;
+      background: #1a1a1a; border: 1.5px solid #2a2a2a;
+      border-radius: 999px; cursor: pointer;
+      transition: background .15s, border-color .15s, transform .1s;
+      color: #ddd; user-select: none;
+    }
+    .reaction-btn:hover { background: #222; border-color: #444; transform: scale(1.08); }
+    .reaction-btn.active { background: #2a1f1a; border-color: #FF5733; }
+    .r-emoji { font-size: 17px; line-height: 1; }
+    .r-count { font-size: 12px; font-weight: 600; color: #888; min-width: 8px; }
+    .reaction-btn.active .r-count { color: #FF5733; }
+
+    /* ── Sections ───────────────────────────────────────────────────── */
+    .divider { height: 1px; background: #1e1e1e; margin: 22px 0; }
+
+    .section-title {
+      font-size: 13px; font-weight: 600; color: #777;
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .section-title svg { color: #FF5733; flex-shrink: 0; }
+
+    .ai-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 600; color: #666;
+      background: #1a1a1a; border: 1px solid #2a2a2a;
+      border-radius: 4px; padding: 2px 6px; letter-spacing: .04em;
+    }
+
+    /* Summary */
+    .summary-text { font-size: 15px; line-height: 1.7; color: #bbb; }
+
+    /* Chapters */
+    .chapters-list { display: flex; flex-direction: column; gap: 2px; }
+    .chapter-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 10px; border-radius: 8px; cursor: pointer;
+      transition: background .12s;
+    }
+    .chapter-item:hover   { background: #1a1a1a; }
+    .chapter-item.active  { background: #1f1812; }
+    .chapter-time {
+      font-size: 12px; font-weight: 600; color: #FF5733;
+      font-variant-numeric: tabular-nums; min-width: 36px; flex-shrink: 0;
+    }
+    .chapter-title { font-size: 14px; color: #ccc; line-height: 1.3; }
+    .chapter-item.active .chapter-title { color: #fff; font-weight: 500; }
+
+    /* ── Transcript panel ───────────────────────────────────────────── */
+    .transcript-panel {
+      background: #141414; border: 1px solid #222; border-radius: 12px;
+      max-height: 560px; display: flex; flex-direction: column;
+      overflow: hidden; position: sticky; top: 20px;
+    }
+    .transcript-header {
+      padding: 13px 16px; border-bottom: 1px solid #222;
+      font-size: 13px; font-weight: 600; color: #ccc;
+      display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+    }
+    .transcript-header svg { color: #FF5733; }
+    .transcript-list {
+      flex: 1; overflow-y: auto; padding: 6px 0;
+      scrollbar-width: thin; scrollbar-color: #333 transparent;
+    }
+    .transcript-item {
+      display: flex; gap: 10px; padding: 9px 16px; cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background .12s, border-color .12s;
+    }
+    .transcript-item:hover  { background: #1c1c1c; }
+    .transcript-item.active { background: #1f1812; border-left-color: #FF5733; }
+    .transcript-time {
+      flex-shrink: 0; color: #FF5733; font-size: 12px; font-weight: 600;
+      font-variant-numeric: tabular-nums; padding-top: 1px; min-width: 36px;
+    }
+    .transcript-text { color: #bbb; font-size: 13px; line-height: 1.5; word-break: break-word; }
+
+    /* ── Loading / error ────────────────────────────────────────────── */
     .state {
       text-align: center; padding: 80px 24px;
       display: flex; flex-direction: column; align-items: center; gap: 14px;
     }
-    .state h2 { font-size: 24px; color: #FF5733; }
-    .state p { color: #888; }
+    .state h2 { font-size: 22px; color: #FF5733; }
+    .state p   { color: #888; font-size: 14px; }
     .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,87,51,0.25);
-      border-top-color: #FF5733; border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+      width: 34px; height: 34px;
+      border: 3px solid rgba(255,87,51,.2); border-top-color: #FF5733;
+      border-radius: 50%; animation: spin .85s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -225,386 +266,373 @@
 <body>
 
   <header>
-    <div class="logo">
-      <div class="logo-mark">●</div>
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="7"/></svg>
+      </div>
       <span class="logo-text">Recorder</span>
-    </div>
-    <button class="close-btn" id="closeBtn" title="Close tab" aria-label="Close">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <path d="M18 6L6 18M6 6l12 12"/>
-      </svg>
-    </button>
+    </a>
   </header>
 
+  <button class="close-btn" id="closeBtn" aria-label="Close">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </svg>
+  </button>
+
   <main id="main">
-    <div class="state" id="loadingState">
-      <div class="spinner"></div>
-      <p>Loading recording…</p>
-    </div>
+    <div class="state"><div class="spinner"></div><p>Loading recording…</p></div>
   </main>
 
   <script>
-    // ─────────────────────────────────────────────────────────
-    // Public anon key — safe to ship in client. RLS controls access.
-    // ─────────────────────────────────────────────────────────
     const SUPABASE_URL      = 'https://xzaeyozdjnklzikxnsay.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6YWV5b3pkam5rbHppa3huc2F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODM2NTAsImV4cCI6MjA5MzA1OTY1MH0.8fZF_MJBMAtD23NLEsMOQY8qKYXcj-Uco3jm3jr-lRI';
+    const REACTIONS         = ['❤️','👍','🔥','👏','🙌','👀'];
 
-    // ─── Helpers ───────────────────────────────────────────
-    function publicUrl(path) {
-      if (!path) return '';
-      return SUPABASE_URL + '/storage/v1/object/public/videos/' + path;
+    const H = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
+
+    function rpc(fn, args) {
+      return fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {
+        method: 'POST',
+        headers: { ...H, 'Content-Type': 'application/json' },
+        body: JSON.stringify(args),
+      }).then(r => r.json()).catch(() => null);
     }
-    function escHtml(s) {
+
+    function pub(path) {
+      return path ? SUPABASE_URL + '/storage/v1/object/public/videos/' + path : '';
+    }
+
+    function esc(s) {
       return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
-    function formatDate(iso) {
-      try {
-        return new Date(iso).toLocaleDateString('en-US',
-          { year: 'numeric', month: 'long', day: 'numeric' });
-      } catch { return ''; }
-    }
-    function formatDuration(secs) {
-      secs = Math.max(0, parseInt(secs, 10) || 0);
-      const m = Math.floor(secs / 60);
-      const s = secs % 60;
-      return m + ':' + String(s).padStart(2, '0');
-    }
-    function showError(title, msg) {
-      document.getElementById('main').innerHTML =
-        '<div class="state"><h2>' + escHtml(title) + '</h2><p>' + escHtml(msg) + '</p></div>';
+
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
+      catch { return ''; }
     }
 
-    // ─── Header close button ───────────────────────────────
+    function fmtDur(secs) {
+      secs = Math.max(0, parseInt(secs,10) || 0);
+      return Math.floor(secs/60) + ':' + String(secs%60).padStart(2,'0');
+    }
+
+    function fp() {
+      let id = localStorage.getItem('_rfp');
+      if (!id) { id = crypto.randomUUID(); localStorage.setItem('_rfp', id); }
+      return id;
+    }
+
+    function showErr(title, msg) {
+      document.getElementById('main').innerHTML =
+        `<div class="state"><h2>${esc(title)}</h2><p>${esc(msg)}</p></div>`;
+    }
+
+    let library = [], currentIdx = -1, myReactions = new Set();
+
     document.getElementById('closeBtn').addEventListener('click', () => {
-      // Try window.close() — only works for tabs opened by JS. Otherwise navigate
-      // away to a blank page so the user feels the "close" affordance.
       window.close();
-      // Fallback after a tick if close() was a no-op
-      setTimeout(() => {
-        if (!document.hidden) location.href = 'about:blank';
-      }, 200);
+      setTimeout(() => { if (!document.hidden) location.href = 'about:blank'; }, 200);
     });
 
-    // ─── Library state ─────────────────────────────────────
-    let library    = [];   // all ready videos, newest first
-    let currentIdx = -1;   // index in library
-
-    // ─── Render the player for a given video index ─────────
-    function renderPlayer(idx) {
+    // ── Render player for index idx ──────────────────────────────────────────
+    function render(idx) {
       currentIdx = idx;
       const v = library[idx];
-      if (!v) return showError('Recording not found', 'Index out of range.');
+      if (!v) return showErr('Not found', 'Index out of range.');
 
-      const videoUrl     = publicUrl(v.storage_path);
-      const thumbnailUrl = publicUrl(v.thumbnail_path);
-      const titleSafe    = escHtml(v.title || 'Screen Recording');
-      const subtitle     = formatDate(v.created_at) +
-        (v.duration_secs ? ' · ' + formatDuration(v.duration_secs) : '');
+      const hasTx   = Array.isArray(v.transcript) && v.transcript.length > 0;
+      const hasCh   = Array.isArray(v.chapters)   && v.chapters.length   > 0;
+      const hasSumm = typeof v.summary === 'string' && v.summary.trim().length > 0;
 
-      // Update document title and OG tags
-      document.title = (v.title || 'Screen Recording') + ' — Screen Recording';
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute('content', v.title || 'Screen Recording');
+      document.title = (v.title || 'Screen Recording') + ' — Recorder';
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', v.title || 'Screen Recording');
 
-      const hasTranscript = Array.isArray(v.transcript) && v.transcript.length > 0;
+      const u = new URL(location.href);
+      u.searchParams.set('t', v.share_token);
+      history.replaceState(null, '', u.toString());
 
-      const main = document.getElementById('main');
-      main.innerHTML = `
-       <div class="layout ${hasTranscript ? 'has-transcript' : ''}">
-        <div class="player-col">
-        <div class="player-wrap">
-          <button class="nav-btn prev" id="prevBtn" aria-label="Previous recording" ${idx >= library.length - 1 ? 'disabled' : ''}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <video id="player" src="${escHtml(videoUrl)}" controls autoplay
-                 poster="${escHtml(thumbnailUrl)}" preload="metadata"></video>
-          <button class="nav-btn next" id="nextBtn" aria-label="Next recording" ${idx <= 0 ? 'disabled' : ''}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-          ${library.length > 1 ? `<div class="nav-counter">${idx + 1} / ${library.length}</div>` : ''}
-          ${hasTranscript ? `
-            <button class="captions-toggle" id="ccToggle" title="Toggle captions" aria-label="Toggle captions">CC</button>
-            <div class="captions visible" id="captions"></div>
-          ` : ''}
-        </div>
-        <div class="meta">
-          <div class="title-wrap">
-            <h1>${titleSafe}</h1>
-            <p class="subtitle">${escHtml(subtitle)}</p>
-            <div id="copyStatus"></div>
+      const subtitle = [fmtDate(v.created_at), v.duration_secs ? fmtDur(v.duration_secs) : null]
+        .filter(Boolean).join(' · ');
+
+      const eyeIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+      const views   = v.view_count || 0;
+
+      document.getElementById('main').innerHTML = `
+        <div class="content-grid ${hasTx ? 'has-transcript' : ''}">
+          <div class="player-col">
+
+            <div class="player-wrap">
+              <button class="nav-btn prev" id="prevBtn" ${idx >= library.length-1 ? 'disabled' : ''}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <video id="player" src="${esc(pub(v.storage_path))}" controls autoplay
+                     poster="${esc(pub(v.thumbnail_path))}" preload="metadata"></video>
+              <button class="nav-btn next" id="nextBtn" ${idx <= 0 ? 'disabled' : ''}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              ${library.length > 1 ? `<div class="nav-counter">${idx+1} / ${library.length}</div>` : ''}
+              ${hasTx ? `<button class="captions-toggle" id="ccToggle">CC</button><div class="captions" id="captions"></div>` : ''}
+            </div>
+
+            <div class="meta">
+              <div class="title-wrap">
+                <h1>${esc(v.title || 'Screen Recording')}</h1>
+                <div class="subtitle">
+                  <span>${esc(subtitle)}</span>
+                  <span class="view-count" id="viewCount">${eyeIcon} ${views.toLocaleString()} view${views===1?'':'s'}</span>
+                </div>
+                <div id="copyStatus"></div>
+              </div>
+              <div class="actions">
+                <button class="btn btn-secondary" id="copyBtn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy link
+                </button>
+                <a class="btn btn-primary" href="${esc(pub(v.storage_path))}" download>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Download
+                </a>
+              </div>
+            </div>
+
+            <div class="reactions-bar" id="reactionsBar">
+              ${REACTIONS.map(r => `
+                <button class="reaction-btn" data-reaction="${r}">
+                  <span class="r-emoji">${r}</span>
+                  <span class="r-count" id="rc-${encodeURIComponent(r)}"></span>
+                </button>`).join('')}
+            </div>
+
+            ${hasSumm ? `
+              <div class="divider"></div>
+              <div>
+                <div class="section-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  Summary <span class="ai-badge">✦ AI</span>
+                </div>
+                <p class="summary-text">${esc(v.summary)}</p>
+              </div>` : ''}
+
+            ${hasCh ? `
+              <div class="divider"></div>
+              <div>
+                <div class="section-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  Chapters <span class="ai-badge">✦ AI</span>
+                </div>
+                <div class="chapters-list" id="chapList">
+                  ${v.chapters.map((ch,i) => `
+                    <div class="chapter-item" data-t="${Number(ch.t)||0}" data-i="${i}">
+                      <span class="chapter-time">${fmtDur(ch.t)}</span>
+                      <span class="chapter-title">${esc(ch.title)}</span>
+                    </div>`).join('')}
+                </div>
+              </div>` : ''}
+
           </div>
-          <div class="actions">
-            <button class="btn btn-secondary" id="copyBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              Copy link
-            </button>
-            <a class="btn btn-primary" href="${escHtml(videoUrl)}" download>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download
-            </a>
-          </div>
-        </div>
-        </div>
 
-        ${hasTranscript ? `
-          <aside class="transcript-panel" id="transcriptPanel">
+          ${hasTx ? `
+          <aside class="transcript-panel">
             <div class="transcript-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="8"  y1="13" x2="16" y2="13"/>
-                <line x1="8"  y1="17" x2="16" y2="17"/>
-                <line x1="8"  y1="9"  x2="10" y2="9"/>
-              </svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
               Transcript
             </div>
-            <div class="transcript-list" id="transcriptList">
-              ${v.transcript.map((seg, i) => `
-                <div class="transcript-item" data-idx="${i}" data-t="${Number(seg.t) || 0}">
-                  <span class="transcript-time">${formatDuration(seg.t)}</span>
-                  <span class="transcript-text">${escHtml(seg.text)}</span>
-                </div>
-              `).join('')}
+            <div class="transcript-list" id="txList">
+              ${v.transcript.map((seg,i) => `
+                <div class="transcript-item" data-i="${i}" data-t="${Number(seg.t)||0}">
+                  <span class="transcript-time">${fmtDur(seg.t)}</span>
+                  <span class="transcript-text">${esc(seg.text)}</span>
+                </div>`).join('')}
             </div>
-          </aside>
-        ` : ''}
-       </div>
-      `;
+          </aside>` : ''}
+        </div>`;
 
-      // Update URL without reload so refresh stays on same video
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('t', v.share_token);
-      history.replaceState(null, '', newUrl.toString());
-
-      wirePlayer(v);
+      wire(v);
+      loadReactions(v.id);
+      trackView(v.id);
     }
 
-    // ─── Wire up controls and slider seek-fix ──────────────
-    function wirePlayer(v) {
-      const video = document.getElementById('player');
+    // ── Wire controls ────────────────────────────────────────────────────────
+    function wire(v) {
+      const video   = document.getElementById('player');
+      const txList  = document.getElementById('txList');
+      const chList  = document.getElementById('chapList');
+      const capEl   = document.getElementById('captions');
+      const ccBtn   = document.getElementById('ccToggle');
+      const chapters   = Array.isArray(v.chapters)   ? v.chapters   : [];
+      const transcript = Array.isArray(v.transcript) ? v.transcript : [];
 
-      // Slider seek fix: webm files written by MediaRecorder usually have no
-      // duration metadata, so the browser reports duration === Infinity and the
-      // native control bar shows nonsense like "596523:14:07". We force the
-      // duration to be recomputed by seeking to a huge time, waiting for the
-      // browser to update the metadata, then seeking back to 0.
-      //
-      // The control bar is hidden during the dance so the user never sees the
-      // bad timestamp, and re-enabled only once duration is a finite number.
-      let durationFixed = false;
-      const fixDuration = () => {
-        if (durationFixed) return;
+      // Duration fix
+      let fixed = false;
+      video.addEventListener('loadedmetadata', () => {
+        if (fixed) return;
         if (video.duration === Infinity || isNaN(video.duration)) {
-          // Hide the seek bar while we recompute — prevents the Infinity flash
           video.removeAttribute('controls');
-          video.dataset.fixingDuration = '1';
-          const onDurationChange = () => {
-            if (video.duration !== Infinity && !isNaN(video.duration)) {
-              video.removeEventListener('durationchange', onDurationChange);
-              video.currentTime = 0;
-              video.setAttribute('controls', '');
-              delete video.dataset.fixingDuration;
-              durationFixed = true;
+          const onDC = () => {
+            if (isFinite(video.duration)) {
+              video.removeEventListener('durationchange', onDC);
+              video.currentTime = 0; video.setAttribute('controls',''); fixed = true;
             }
           };
-          video.addEventListener('durationchange', onDurationChange);
-          // Failsafe: if the browser never fires a usable durationchange,
-          // restore controls after 6s so the player isn't stuck without a UI.
-          setTimeout(() => {
-            if (video.dataset.fixingDuration) {
-              video.setAttribute('controls', '');
-              delete video.dataset.fixingDuration;
-            }
-          }, 6000);
+          video.addEventListener('durationchange', onDC);
+          setTimeout(() => { if (!fixed) { video.setAttribute('controls',''); fixed = true; } }, 6000);
           video.currentTime = 1e10;
-        } else {
-          durationFixed = true;
+        } else { fixed = true; }
+      });
+
+      // Nav
+      video.addEventListener('ended', () => { if (currentIdx+1 < library.length) render(currentIdx+1); });
+      document.getElementById('prevBtn')?.addEventListener('click', () => { if (currentIdx+1 < library.length) render(currentIdx+1); });
+      document.getElementById('nextBtn')?.addEventListener('click', () => { if (currentIdx-1 >= 0) render(currentIdx-1); });
+      document.onkeydown = e => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowLeft'  && e.shiftKey) document.getElementById('prevBtn')?.click();
+        if (e.key === 'ArrowRight' && e.shiftKey) document.getElementById('nextBtn')?.click();
+      };
+
+      // Captions
+      let ccOn = localStorage.getItem('captionsOff') !== '1';
+      if (capEl && ccBtn) {
+        const applyCC = () => { ccBtn.classList.toggle('off', !ccOn); if (!ccOn) { capEl.textContent=''; capEl.classList.remove('visible'); } };
+        applyCC();
+        ccBtn.addEventListener('click', () => { ccOn=!ccOn; localStorage.setItem('captionsOff', ccOn?'0':'1'); applyCC(); });
+      }
+
+      // Seek on chapter/transcript click
+      chList?.addEventListener('click', e => {
+        const item = e.target.closest('.chapter-item');
+        if (item) { video.currentTime = parseFloat(item.dataset.t||0); video.play().catch(()=>{}); }
+      });
+      txList?.addEventListener('click', e => {
+        const item = e.target.closest('.transcript-item');
+        if (item) { video.currentTime = parseFloat(item.dataset.t||0); video.play().catch(()=>{}); }
+      });
+
+      // Timeupdate → highlight active segment/chapter + captions
+      const HOLD = 5;
+      let lastSeg = -1, lastChap = -1;
+      video.addEventListener('timeupdate', () => {
+        const t = video.currentTime;
+
+        // Active transcript segment
+        let seg = -1;
+        for (let i=0; i<transcript.length; i++) { if ((transcript[i].t||0)<=t) seg=i; else break; }
+        if (seg !== lastSeg) {
+          lastSeg = seg;
+          txList?.querySelectorAll('.transcript-item').forEach((el,i)=>el.classList.toggle('active',i===seg));
+          if (seg >= 0 && txList) {
+            const el = txList.querySelectorAll('.transcript-item')[seg];
+            if (el) {
+              const top = el.offsetTop;
+              if (top < txList.scrollTop || top+el.offsetHeight > txList.scrollTop+txList.clientHeight)
+                txList.scrollTo({top: top - txList.clientHeight/2 + el.offsetHeight/2, behavior:'smooth'});
+            }
+          }
         }
-      };
-      video.addEventListener('loadedmetadata', fixDuration);
-      video.addEventListener('durationchange', () => {
-        if (video.duration !== Infinity && !isNaN(video.duration)) durationFixed = true;
+
+        // Captions
+        if (capEl && ccOn && seg >= 0) {
+          const s   = transcript[seg];
+          const end = seg+1 < transcript.length ? transcript[seg+1].t||0 : (s.t||0)+HOLD;
+          if (t < end) { if (capEl.dataset.i !== String(seg)) { capEl.dataset.i=String(seg); capEl.textContent=s.text; } capEl.classList.add('visible'); }
+          else { capEl.classList.remove('visible'); capEl.textContent=''; }
+        } else if (capEl) { capEl.classList.remove('visible'); }
+
+        // Active chapter
+        let chap = -1;
+        for (let i=0; i<chapters.length; i++) { if ((chapters[i].t||0)<=t) chap=i; else break; }
+        if (chap !== lastChap) {
+          lastChap = chap;
+          chList?.querySelectorAll('.chapter-item').forEach((el,i)=>el.classList.toggle('active',i===chap));
+        }
       });
-
-      // Auto-advance to next video (older) when this one finishes
-      video.addEventListener('ended', () => {
-        if (currentIdx + 1 < library.length) renderPlayer(currentIdx + 1);
-      });
-
-      // Prev / Next buttons
-      const prevBtn = document.getElementById('prevBtn'); // older recordings
-      const nextBtn = document.getElementById('nextBtn'); // newer recordings
-      if (prevBtn) prevBtn.addEventListener('click', () => {
-        if (currentIdx + 1 < library.length) renderPlayer(currentIdx + 1);
-      });
-      if (nextBtn) nextBtn.addEventListener('click', () => {
-        if (currentIdx - 1 >= 0) renderPlayer(currentIdx - 1);
-      });
-
-      // Keyboard arrows
-      document.onkeydown = (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        if (e.key === 'ArrowLeft' && e.shiftKey)  prevBtn?.click();
-        if (e.key === 'ArrowRight' && e.shiftKey) nextBtn?.click();
-      };
-
-      // ── Captions overlay (bottom of player) ───────────────────────
-      // Each transcript segment {t, text} acts as a caption that displays
-      // from its t until the next segment's t (or t + 5s for the last one).
-      // User can hide/show with the CC button (preference saved in localStorage).
-      const captionsEl = document.getElementById('captions');
-      const ccToggle   = document.getElementById('ccToggle');
-      let captionsOn = localStorage.getItem('captionsOff') !== '1';
-      if (captionsEl && ccToggle) {
-        const applyCcState = () => {
-          ccToggle.classList.toggle('off', !captionsOn);
-          if (!captionsOn) {
-            captionsEl.textContent = '';
-            captionsEl.classList.remove('visible');
-          }
-        };
-        applyCcState();
-        ccToggle.addEventListener('click', () => {
-          captionsOn = !captionsOn;
-          localStorage.setItem('captionsOff', captionsOn ? '0' : '1');
-          applyCcState();
-        });
-      }
-
-      // ── Transcript: click-to-seek + auto-highlight active segment ──
-      const transcriptList = document.getElementById('transcriptList');
-      if (transcriptList && Array.isArray(v.transcript) && v.transcript.length) {
-        const items = Array.from(transcriptList.querySelectorAll('.transcript-item'));
-
-        // Click any segment → seek & play
-        transcriptList.addEventListener('click', (e) => {
-          const item = e.target.closest('.transcript-item');
-          if (!item) return;
-          const t = parseFloat(item.dataset.t || '0');
-          if (isFinite(t)) {
-            video.currentTime = t;
-            video.play().catch(() => {});
-          }
-        });
-
-        // Active segment highlight + caption text while playing
-        const CAPTION_HOLD = 5; // seconds the last segment lingers
-        let lastActive = -1;
-        video.addEventListener('timeupdate', () => {
-          const cur = video.currentTime;
-          // Find last segment with t <= cur
-          let active = -1;
-          for (let i = 0; i < v.transcript.length; i++) {
-            if ((v.transcript[i].t || 0) <= cur) active = i;
-            else break;
-          }
-
-          // Captions: show active segment if its window covers `cur`.
-          if (captionsEl && captionsOn) {
-            if (active >= 0) {
-              const seg     = v.transcript[active];
-              const segEnd  = (active + 1 < v.transcript.length)
-                ? (v.transcript[active + 1].t || 0)
-                : ((seg.t || 0) + CAPTION_HOLD);
-              if (cur < segEnd) {
-                if (captionsEl.dataset.idx !== String(active)) {
-                  captionsEl.dataset.idx   = String(active);
-                  captionsEl.textContent   = seg.text;
-                }
-                captionsEl.classList.add('visible');
-              } else {
-                captionsEl.classList.remove('visible');
-                captionsEl.textContent = '';
-                captionsEl.dataset.idx = '';
-              }
-            } else {
-              captionsEl.classList.remove('visible');
-              captionsEl.textContent = '';
-            }
-          }
-
-          if (active === lastActive) return;
-          lastActive = active;
-          items.forEach((el, i) => el.classList.toggle('active', i === active));
-          if (active >= 0) {
-            const el = items[active];
-            // Scroll into view within the panel only (not the whole page)
-            const panel = transcriptList;
-            const elTop = el.offsetTop;
-            const elBottom = elTop + el.offsetHeight;
-            if (elTop < panel.scrollTop || elBottom > panel.scrollTop + panel.clientHeight) {
-              panel.scrollTo({ top: elTop - panel.clientHeight / 2 + el.offsetHeight / 2, behavior: 'smooth' });
-            }
-          }
-        });
-      }
 
       // Copy link
-      document.getElementById('copyBtn').addEventListener('click', () => {
-        navigator.clipboard.writeText(window.location.href).then(() => {
+      document.getElementById('copyBtn')?.addEventListener('click', () => {
+        navigator.clipboard.writeText(location.href).then(() => {
           const s = document.getElementById('copyStatus');
-          s.textContent = '✓ Link copied!';
-          setTimeout(() => { s.textContent = ''; }, 2500);
+          s.textContent='✓ Link copied!'; setTimeout(()=>{s.textContent='';},2500);
         });
+      });
+
+      // Reactions
+      document.getElementById('reactionsBar')?.addEventListener('click', async e => {
+        const btn = e.target.closest('.reaction-btn');
+        if (!btn) return;
+        const reaction = btn.dataset.reaction;
+        const result   = await rpc('toggle_reaction', { p_video_id: v.id, p_reaction: reaction, p_fingerprint: fp() });
+        if (myReactions.has(reaction)) myReactions.delete(reaction); else myReactions.add(reaction);
+        if (Array.isArray(result)) paintReactions(result);
       });
     }
 
-    // ─── Bootstrap: load library + locate current token ────
-    async function load() {
-      const params = new URLSearchParams(window.location.search);
-      const token  = params.get('t');
+    // ── Reactions helpers ────────────────────────────────────────────────────
+    async function loadReactions(videoId) {
+      const [counts, mine] = await Promise.all([
+        rpc('get_reaction_counts', { p_video_id: videoId }),
+        rpc('get_my_reactions',    { p_video_id: videoId, p_fingerprint: fp() }),
+      ]);
+      myReactions = new Set(Array.isArray(mine) ? mine.map(r=>r.reaction) : []);
+      if (Array.isArray(counts)) paintReactions(counts);
+    }
 
-      if (!token) {
-        showError('Missing share token', 'This link is malformed.');
-        return;
+    function paintReactions(counts) {
+      const map = {};
+      counts.forEach(r => { map[r.reaction] = r.count; });
+      REACTIONS.forEach(r => {
+        const btn  = document.querySelector(`.reaction-btn[data-reaction="${r}"]`);
+        const cntEl= document.getElementById('rc-' + encodeURIComponent(r));
+        if (!btn || !cntEl) return;
+        const n = map[r] || 0;
+        cntEl.textContent = n > 0 ? n : '';
+        btn.classList.toggle('active', myReactions.has(r));
+      });
+    }
+
+    // ── View counter ─────────────────────────────────────────────────────────
+    function trackView(videoId) {
+      const key = 'v_' + videoId;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      rpc('increment_view_count', { p_video_id: videoId });
+      const el = document.getElementById('viewCount');
+      if (el) {
+        const n = parseInt((el.textContent.match(/[\d,]+/)||['0'])[0].replace(/,/g,''),10) + 1;
+        const eyeIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+        el.innerHTML = eyeIcon + ' ' + n.toLocaleString() + ' view' + (n===1?'':'s');
       }
+    }
 
-      const headers = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
+    // ── Bootstrap ────────────────────────────────────────────────────────────
+    async function load() {
+      const token = new URLSearchParams(location.search).get('t');
+      if (!token) { showErr('Missing share token', 'This link is malformed.'); return; }
 
       try {
-        // Step 1: fetch just the shared video by its token to get the owner.
-        // Fetching all videos without an owner filter returns every user's
-        // recordings — fixing the "1 / N" counter showing total DB count.
-        const videoRes = await fetch(
+        const vRes = await fetch(
           SUPABASE_URL + '/rest/v1/videos?share_token=eq.' + encodeURIComponent(token) +
             '&status=eq.ready&select=*&limit=1',
-          { headers }
+          { headers: H }
         );
-        if (!videoRes.ok) throw new Error('Server error: ' + videoRes.status);
-        const [video] = await videoRes.json();
+        if (!vRes.ok) throw new Error('Server error ' + vRes.status);
+        const [video] = await vRes.json();
+        if (!video) { showErr('Recording not found', 'This link may have expired or been deleted.'); return; }
 
-        if (!video) {
-          showError('Recording not found', 'This link may have expired or been deleted.');
-          return;
-        }
-
-        // Step 2: fetch all videos by the same owner for prev/next navigation.
-        const libRes = await fetch(
+        const lRes = await fetch(
           SUPABASE_URL + '/rest/v1/videos?owner_id=eq.' + encodeURIComponent(video.owner_id) +
             '&status=eq.ready&order=created_at.desc&select=*',
-          { headers }
+          { headers: H }
         );
-        if (!libRes.ok) throw new Error('Server error: ' + libRes.status);
-        library = await libRes.json();
+        if (!lRes.ok) throw new Error('Server error ' + lRes.status);
+        library = await lRes.json();
 
         const idx = library.findIndex(v => v.share_token === token);
-        renderPlayer(idx === -1 ? (library = [video], 0) : idx);
+        render(idx === -1 ? (library = [video], 0) : idx);
       } catch (err) {
         console.error(err);
-        showError('Could not load recording', err.message || 'Unknown error');
+        showErr('Could not load recording', err.message || 'Unknown error');
       }
     }
 
@@ -612,4 +640,3 @@
   </script>
 </body>
 </html>
-
