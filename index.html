@@ -572,24 +572,36 @@
         return;
       }
 
-      try {
-        const url = SUPABASE_URL +
-          '/rest/v1/videos?status=eq.ready&order=created_at.desc&select=*';
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
-          },
-        });
-        if (!res.ok) throw new Error('Server error: ' + res.status);
-        library = await res.json();
+      const headers = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
 
-        const idx = library.findIndex(v => v.share_token === token);
-        if (idx === -1) {
+      try {
+        // Step 1: fetch just the shared video by its token to get the owner.
+        // Fetching all videos without an owner filter returns every user's
+        // recordings — fixing the "1 / N" counter showing total DB count.
+        const videoRes = await fetch(
+          SUPABASE_URL + '/rest/v1/videos?share_token=eq.' + encodeURIComponent(token) +
+            '&status=eq.ready&select=*&limit=1',
+          { headers }
+        );
+        if (!videoRes.ok) throw new Error('Server error: ' + videoRes.status);
+        const [video] = await videoRes.json();
+
+        if (!video) {
           showError('Recording not found', 'This link may have expired or been deleted.');
           return;
         }
-        renderPlayer(idx);
+
+        // Step 2: fetch all videos by the same owner for prev/next navigation.
+        const libRes = await fetch(
+          SUPABASE_URL + '/rest/v1/videos?owner_id=eq.' + encodeURIComponent(video.owner_id) +
+            '&status=eq.ready&order=created_at.desc&select=*',
+          { headers }
+        );
+        if (!libRes.ok) throw new Error('Server error: ' + libRes.status);
+        library = await libRes.json();
+
+        const idx = library.findIndex(v => v.share_token === token);
+        renderPlayer(idx === -1 ? (library = [video], 0) : idx);
       } catch (err) {
         console.error(err);
         showError('Could not load recording', err.message || 'Unknown error');
@@ -600,3 +612,4 @@
   </script>
 </body>
 </html>
+
